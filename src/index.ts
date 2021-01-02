@@ -8,7 +8,7 @@ TODO
 import './styles/style.scss';
 import * as PIXI from 'pixi.js';
 import { files } from './files';
-import { Kaleidoscope } from './Kaleidoscope';
+// import { Kaleidoscope } from './Kaleidoscope';
 import * as _ from 'lodash';
 
 console.log('hello, world');
@@ -33,69 +33,104 @@ const container = new PIXI.Container();
 
 const loader = new PIXI.Loader();
 
-setInterval(() => {
-  const initialImageLoad = () => {
-    const texture = loader.resources[newImage].texture;
-    const sprite = new PIXI.Sprite(texture);
+app.stage.addChild(container);
 
-    sprite.x = Math.random() * renderTexture.width;
-    sprite.y = Math.random() * renderTexture.height;
-    sprite.x = 0;
-    // sprite.y = 0;
-    container.addChild(sprite);
+type ImageObject = any;
+let objects: ImageObject[] = [];
 
-    const alphaSpeed = 200 + 2000 * Math.random();
-    const moveSpeed = Math.random() * 0.0001;
-    let count = Math.random() > 0.5 ? alphaSpeed : 0;
-    app.ticker.add(() => {
-      count += 1;
-      // sprite.alpha = Math.sin(count / alphaSpeed);
-      sprite.x += count * moveSpeed;
-    });
+async function updateObjects() {
+  const newObjects = await (
+    await fetch('http://localhost:5000/objects/recent')
+  ).json();
+  console.log(newObjects);
+  objects = [...objects, ...newObjects];
+}
+
+const containerTickers: Map<PIXI.Container, (() => any)[]> = new Map();
+
+function containerWrappedTicker(container: PIXI.Container, cb: () => any) {
+  containerTickers.set(container, [
+    ...(containerTickers.get(container) || []),
+    cb,
+  ]);
+
+  app.ticker.add(cb);
+}
+
+function destroyContainer(container: PIXI.Container) {
+  (containerTickers.get(container) || []).forEach((cb) => {
+    app.ticker.remove(cb);
+  });
+  container.destroy();
+}
+
+function makeRibbon(texture: PIXI.Texture) {
+  const startY = Math.random() * app.renderer.height - texture.height;
+  const tiledSprite = new PIXI.TilingSprite(
+    texture,
+    app.renderer.width,
+    texture.height
+  );
+  tiledSprite.y = startY;
+  app.stage.addChild(tiledSprite);
+
+  const baseMoveSpeed = 0.25 + 0.75 * Math.random();
+  containerWrappedTicker(tiledSprite, () => {
+    // sprite.alpha = Math.sin(count / alphaSpeed);
+    tiledSprite.tilePosition.x += baseMoveSpeed;
+  });
+
+  return tiledSprite;
+}
+
+function wrapInFade(container: PIXI.Container) {
+  const timeOnScreenSeconds = 5 + 10 * Math.random();
+  const timeInFrames = timeOnScreenSeconds * 60;
+
+  let count = 0;
+  const fader = (deltaTime: number) => {
+    count += deltaTime;
+    container.alpha = Math.sin((Math.PI * count) / timeInFrames);
+    if (count >= timeInFrames) {
+      app.ticker.remove(fader);
+      destroyContainer(container);
+    }
   };
+  app.ticker.add(fader);
+}
 
-  const newImage = 'objects/' + _.sample(files);
-  if (PIXI.utils.TextureCache[newImage]) {
-    console.log('not reloading');
-    initialImageLoad();
-  } else {
-    loader.add(newImage);
-    loader.onComplete.add(initialImageLoad);
-    loader.load();
-  }
-}, 250);
+const initialImageLoad = (loader: PIXI.Loader, resource: any) => {
+  console.log(resource.name);
+  const url = resource.name;
+  const texture = loader.resources[url].texture;
+  wrapInFade(makeRibbon(texture));
+};
 
-// const loader = new PIXI.Loader();
-// for (let i = 0; i < files.length; i++) {
-//   loader.add('objects/' + files[i]);
-// }
-// loader.onComplete.add(handleLoadComplete);
-// loader.load();
+function displayOneObject() {
+  const nextObject = objects.pop();
 
-// function handleLoadComplete() {
-//   for (let i = 0; i < files.length; i++) {
-//     const texture = loader.resources['objects/' + files[i]].texture;
+  const { filename } = nextObject;
 
-//     const sprite = new PIXI.Sprite(texture);
+  const url = `http://localhost:5000/objects/${filename}`;
+  console.log('loading: ', url);
 
-//     sprite.x = Math.random() * renderTexture.width;
-//     sprite.y = Math.random() * renderTexture.height;
-//     container.addChild(sprite);
+  loader.add(url);
+  loader.load();
+}
 
-//     const alphaSpeed = 200 + 2000 * Math.random();
-//     const moveSpeed = Math.random() * 0.001;
-//     let count = Math.random() > 0.5 ? alphaSpeed : 0;
-//     app.ticker.add(() => {
-//       count += 1;
-//       sprite.alpha = Math.sin(count / alphaSpeed);
-//       sprite.x += count * moveSpeed;
-//     });
-//   }
+loader.onLoad.add(initialImageLoad);
+
+updateObjects()
+  .then(displayOneObject)
+  .then(() => {
+    setInterval(() => {
+      displayOneObject();
+    }, 1000);
+  });
 
 app.ticker.add(() => {
   app.renderer.render(container, renderTexture);
 });
 
-const kaleidoscope = new Kaleidoscope({ app, texture: renderTexture });
-kaleidoscope.draw();
-// }
+// const kaleidoscope = new Kaleidoscope({ app, texture: renderTexture });
+// kaleidoscope.draw();

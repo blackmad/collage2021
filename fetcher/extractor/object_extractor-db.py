@@ -118,8 +118,10 @@ def process_image(id, filename, image):
         sql = ''' INSERT INTO objects(id,label,instanceIndex,score,filename,height,width)
               VALUES(?,?,?,?,?,?,?) '''
         cur = conn.cursor()
-        cur.execute(sql, (id, label, i, score, newFilename,
-                          len(image), len(image[0])))
+        print(y1, y2, x1, x2)
+        print('SCORE', score, type(score))
+        cur.execute(sql, (id, label, i, score.item(), newFilename,
+                          int(y2-y1), int(x2-x1)))
         conn.commit()
 
     return outputs
@@ -140,7 +142,7 @@ c = conn.cursor()
 
 c.execute("""CREATE TABLE IF NOT EXISTS objects(id TEXT,label TEXT,instanceIndex INTEGER,score REAL,filename TEXT,height INTEGER,width INTEGER)""")
 
-sql = "SELECT id FROM downloaded WHERE datetime(downloaded_at) >= datetime('now', '-1 hours')"
+sql = "SELECT id FROM downloaded WHERE datetime(downloaded_at) >= datetime('now', '-24 hours')"
 for row in c.execute(sql):
     id = row[0]
     print('DOING THIS ID', id)

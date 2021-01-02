@@ -19,7 +19,7 @@ async function startServer() {
 
   app.get('/objects/recent', (request, response) => {
     const { objectType } = request.query;
-    const sql = `SELECT * FROM objects`;
+    const sql = `SELECT * FROM objects WHERE width > 150 AND height > 150 AND score > 0.85`;
     db.all(sql).then((r) => response.json(r));
   });
 

@@ -51,6 +51,7 @@
     "express": "^4.17.1",
     "express-winston": "^4.0.5",
     "normalize.css": "^8.0.1",
+    "pixi-action": "^1.0.2",
     "pixi.js": "^5.3.7",
     "prettier": "^2.2.1",
     "sqlite": "^4.0.19",
