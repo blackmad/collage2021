@@ -36,9 +36,12 @@
     "webpack-md5-hash": "0.0.6"
   },
   "dependencies": {
+    "@types/dat.gui": "^0.7.6",
+    "@types/lodash": "^4.14.167",
     "@types/pixi.js": "^5.0.0",
     "@typescript-eslint/eslint-plugin": "^4.11.1",
     "@typescript-eslint/parser": "^4.11.1",
+    "dat.gui": "^0.7.7",
     "eslint": "^7.16.0",
     "normalize.css": "^8.0.1",
     "pixi.js": "^5.3.7",

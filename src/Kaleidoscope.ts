@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js';
+import { gui } from './gui';
 
 export class Kaleidoscope {
   HALF_PI: number;
@@ -23,20 +24,29 @@ export class Kaleidoscope {
   mouseX: number;
   mouseY: number;
   texture: PIXI.Texture;
-  constructor(pixiApp: any, texture: PIXI.Texture) {
+  params = {
+    maskOn: true,
+    oneSlice: false,
+  };
+  mainContainer: PIXI.Container;
+  constructor({
+    app,
+    texture,
+  }: {
+    app: PIXI.Application;
+    texture: PIXI.Texture;
+  }) {
     this.HALF_PI = Math.PI / 2;
     this.TWO_PI = Math.PI * 2;
-    this.pixiApp = pixiApp;
+    this.pixiApp = app;
     this.offsetRotation = 0.0;
     this.offsetScale = 1.0;
     this.offsetX = 0.0;
     this.offsetY = 0.0;
     this.radius = window.innerWidth / 2;
-    this.slices = 12;
     this.zoom = 1.0;
     this.posX = window.innerWidth / 2;
     this.posY = window.innerHeight / 2;
-    this.step = this.TWO_PI / this.slices;
     this.arcs = [];
     this.spriteTiles = [];
     this.containers = [];
@@ -45,10 +55,26 @@ export class Kaleidoscope {
     this.interactiveMode = false;
     this.mouseX = 0;
     this.mouseY = 0;
+    this.slices = 8;
+
+    this.mainContainer = new PIXI.Container();
+
+    const redraw = () => {
+      this.mainContainer.destroy();
+      this.mainContainer = new PIXI.Container();
+      this.draw();
+    };
+
+    gui.add(this, 'slices', 2, 20, 2).onChange(redraw);
+    gui.add(this.params, 'maskOn').onChange(redraw);
+    gui.add(this.params, 'oneSlice').onChange(redraw);
   }
 
   draw() {
-    const mainContainer = new PIXI.Container();
+    const { mainContainer } = this;
+
+    this.step = this.TWO_PI / this.slices;
+
     mainContainer.interactive = true;
     (mainContainer as any).mousemove = (e: {
       data: { global: { x: any; y: any } };
@@ -57,13 +83,11 @@ export class Kaleidoscope {
       this.mouseX = x;
       this.mouseY = y;
     };
-    for (let i = 0; i < this.slices; i++) {
+    const slicesToDraw = this.params.oneSlice ? 1 : this.slices;
+    for (let i = 0; i < slicesToDraw; i++) {
       const arc = new PIXI.Graphics();
-      const spriteTileArc = new PIXI.TilingSprite(
-        this.texture,
-        1500 * 2,
-        1500 * 2
-      );
+      // was 3000 for both
+      const spriteTileArc = new PIXI.TilingSprite(this.texture, 1500, 1600);
       const currentStep = this.step * i + 1;
       arc.beginFill(0);
       arc.moveTo(this.posX, this.posY);
@@ -77,7 +101,10 @@ export class Kaleidoscope {
       arc.endFill();
       arc.lineStyle(5, 0xff0000);
 
-      spriteTileArc.mask = arc;
+      if (this.params.maskOn) {
+        spriteTileArc.mask = arc;
+      }
+
       const container = new PIXI.Container();
       container.addChild(arc);
       container.addChild(spriteTileArc);
@@ -103,8 +130,8 @@ export class Kaleidoscope {
           // this.spriteTiles[i].tilePosition.y = this.mouseY + Math.cos(this.count);
           this.spriteTiles[i].tilePosition.y = this.mouseY + this.count;
         } else {
-          this.spriteTiles[i].tilePosition.x += Math.sin(this.count);
-          this.spriteTiles[i].tilePosition.y += Math.cos(this.count);
+          //   this.spriteTiles[i].tilePosition.x += Math.sin(this.count);
+          //   this.spriteTiles[i].tilePosition.y += Math.cos(this.count);
         }
       }
     });
