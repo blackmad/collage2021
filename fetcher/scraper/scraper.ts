@@ -7,15 +7,14 @@ import {
 import * as fs from 'fs';
 import * as _ from 'lodash';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
 import * as sqlite3 from 'sqlite3';
-// const sqlite3 = require('sqlite3').verbose();
 const db = new sqlite3.Database('db.sqlite');
 
 db.run(`CREATE TABLE IF NOT EXISTS discover (
     id TEXT PRIMARY KEY,
     url TEXT,
-    taken_at DATETIME
+    taken_at DATETIME,
+    inserted_at DATETIME
 )`);
 
 function fakeSave(data: any) {
@@ -63,7 +62,7 @@ async function doLogin() {
 }
 
 const insertStatement = db.prepare(
-  'INSERT or IGNORE INTO discover (id, url, taken_at) VALUES (?, ?, ?)'
+  `INSERT or IGNORE INTO discover (id, url, taken_at, inserted_at) VALUES (?, ?, datetime(?, 'unixepoch'), datetime('now'))`
 );
 
 async function logMedia(

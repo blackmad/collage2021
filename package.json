@@ -8,7 +8,8 @@
     "build:dev": "webpack-dev-server --env dev --mode none",
     "build:prod": "webpack --env prod --mode production",
     "prettier-format": "prettier --config .prettierrc 'src/**/*.ts' --write",
-    "lint": "eslint 'src/**/*.{js,ts,tsx}' --quiet --fix"
+    "lint": "eslint 'src/**/*.{js,ts,tsx}' --quiet --fix",
+    "fetch": "cd fetcher/scraper; npx ts-node scraper && npx ts-node downloader; cd ../extractor; python object_extractor-db.py"
   },
   "author": "mwieth",
   "license": "MIT",
@@ -36,15 +37,24 @@
     "webpack-md5-hash": "0.0.6"
   },
   "dependencies": {
+    "@types/cors": "^2.8.9",
     "@types/dat.gui": "^0.7.6",
+    "@types/express": "^4.17.9",
     "@types/lodash": "^4.14.167",
     "@types/pixi.js": "^5.0.0",
     "@typescript-eslint/eslint-plugin": "^4.11.1",
     "@typescript-eslint/parser": "^4.11.1",
+    "cors": "^2.8.5",
     "dat.gui": "^0.7.7",
+    "debug": "^4.3.1",
     "eslint": "^7.16.0",
+    "express": "^4.17.1",
+    "express-winston": "^4.0.5",
     "normalize.css": "^8.0.1",
     "pixi.js": "^5.3.7",
-    "prettier": "^2.2.1"
+    "prettier": "^2.2.1",
+    "sqlite": "^4.0.19",
+    "sqlite3": "^5.0.0",
+    "winston": "^3.3.3"
   }
 }
