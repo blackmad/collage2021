@@ -1,4 +1,5 @@
 import * as PIXI from 'pixi.js';
+import { gui } from './gui';
 import { ObjectFetcher } from './objectFetcher';
 
 export class OneAtATimeLoader {
@@ -6,6 +7,7 @@ export class OneAtATimeLoader {
   objectFetcher: ObjectFetcher;
   refreshRate: number;
   cb: (t: PIXI.Texture) => void;
+  debug: boolean = false;
 
   constructor({
     refreshRate,
@@ -19,15 +21,24 @@ export class OneAtATimeLoader {
     this.refreshRate = refreshRate;
     this.cb = cb;
     this.objectFetcher = new ObjectFetcher({ label });
+    gui.add(this, 'debug');
   }
 
   initialImageLoadHelper(loader: PIXI.Loader, url: string) {
     const texture = loader.resources[url].texture;
-    const container = this.cb(texture);
+    this.cb(texture);
   }
 
   async displayOneObject() {
-    const url = await this.objectFetcher.getObject();
+    const object = await this.objectFetcher.getObject();
+    const url = ObjectFetcher.getImageUrl(object);
+
+    if (this.debug) {
+      var el = document.createElement('div');
+      el.innerHTML = `<img src="${url}"/>${JSON.stringify(object)}`;
+      document.body.appendChild(el);
+    }
+
     console.log('loading: ', url);
 
     if (this.loader.resources[url]) {

@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-interface Object {
+interface ObjectFragment {
   path: string;
   score: number;
   added_at: {
@@ -13,10 +13,13 @@ interface Object {
   url: string;
 }
 
+const INIT_NEWEST = 0;
+const INIT_OLDEST = Number.MAX_VALUE;
+
 export class ObjectFetcher {
-  newestSeen: number = 0;
-  oldestSeen: number = Number.MAX_VALUE;
-  objects: Object[] = [];
+  newestSeen: number = INIT_NEWEST;
+  oldestSeen: number = INIT_OLDEST;
+  objects: ObjectFragment[] = [];
   label: string;
   inFlightRequest: Promise<void> | undefined;
 
@@ -24,7 +27,14 @@ export class ObjectFetcher {
     this.label = label;
   }
 
-  async getObject() {
+  static getImageUrl(object: ObjectFragment): string {
+    const url = `https://firebasestorage.googleapis.com/v0/b/collage2021-e8687.appspot.com/o/${encodeURIComponent(
+      object.path
+    )}?alt=media`;
+    return url;
+  }
+
+  async getObject(): Promise<ObjectFragment> {
     if (this.objects.length === 0) {
       await this.addToQueue();
       console.log('done waiting');
@@ -32,11 +42,7 @@ export class ObjectFetcher {
       this.addToQueue();
     }
 
-    const object = this.objects.pop();
-    const url = `https://firebasestorage.googleapis.com/v0/b/collage2021-e8687.appspot.com/o/${encodeURIComponent(
-      object.path
-    )}?alt=media`;
-    return url;
+    return this.objects.pop();
   }
 
   async addToQueue() {
@@ -69,17 +75,23 @@ export class ObjectFetcher {
       this.objects = [...this.objects, ...json.objects];
       console.log(this.objects);
 
-      this.newestSeen = Math.max(
-        this.newestSeen,
-        _.max(this.objects.map((o) => o.taken_at._seconds))
-      );
-      console.log(_.max(this.objects.map((o) => o.taken_at._seconds)));
-      console.log(this.newestSeen);
+      if (this.objects.length === 0) {
+        // empty response, let's loop back to start
+        this.newestSeen = INIT_NEWEST;
+        this.oldestSeen = INIT_OLDEST;
+      } else {
+        this.newestSeen = Math.max(
+          this.newestSeen,
+          _.max(this.objects.map((o) => o.taken_at._seconds))
+        );
+        console.log(_.max(this.objects.map((o) => o.taken_at._seconds)));
+        console.log(this.newestSeen);
 
-      this.oldestSeen = Math.min(
-        this.oldestSeen,
-        _.min(this.objects.map((o) => o.taken_at._seconds))
-      );
+        this.oldestSeen = Math.min(
+          this.oldestSeen,
+          _.min(this.objects.map((o) => o.taken_at._seconds))
+        );
+      }
       resolve();
       this.inFlightRequest = undefined;
     });
