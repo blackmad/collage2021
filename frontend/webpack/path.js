@@ -1,4 +1,4 @@
-const prod_Path = '../dist';
+const prod_Path = '../../public';
 const src_Path = 'src';
 
 module.exports = {
