@@ -5,10 +5,29 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const { prod_Path, src_Path } = require('./path');
 const { selectedPreprocessor } = require('./loader');
 
+const fs = require('fs');
+
+const entries = {};
+const plugins = [];
+fs.readdirSync('src/pages').forEach((filename) => {
+  if (!filename.endsWith('.ts')) {
+    return;
+  }
+  const name = filename.split('.')[0];
+  (entries[name] = './' + src_Path + '/pages/' + filename),
+    plugins.push(
+      new HtmlWebpackPlugin({
+        inject: true,
+        // hash: false,
+        // template: './' + src_Path + '/index.html',
+        chunks: [name],
+        filename: name + '.html',
+      })
+    );
+});
+
 module.exports = {
-  entry: {
-    main: './' + src_Path + '/index.ts',
-  },
+  entry: entries,
   resolve: {
     extensions: ['.ts', '.js'],
   },
@@ -60,11 +79,6 @@ module.exports = {
     new MiniCssExtractPlugin({
       filename: 'style.css',
     }),
-    new HtmlWebpackPlugin({
-      inject: false,
-      hash: false,
-      template: './' + src_Path + '/index.html',
-      filename: 'index.html',
-    }),
+    ...plugins,
   ],
 };

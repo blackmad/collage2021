@@ -11,6 +11,9 @@
     "source": "functions"
   },
   "hosting": {
+"predeploy": [
+      "npm --prefix \"frontend\" run build:prod"
+    ],
     "public": "public",
     "ignore": [
       "firebase.json",

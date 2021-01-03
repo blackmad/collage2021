@@ -1,22 +1,10 @@
-/*
-TODO
-- stream in new images
-- make the image column fit the slice a little better
-- kill sprites when they are entirely offscreen
-*/
-
-import './styles/style.scss';
+import '../styles/style.scss';
 import * as PIXI from 'pixi.js';
-import { files } from './files';
-// import { Kaleidoscope } from './Kaleidoscope';
 import * as _ from 'lodash';
-import { Ease, ease } from 'pixi-ease';
+import { ease } from 'pixi-ease';
+import { ObjectFetcher } from '../util/objectFetcher';
 
-console.log('hello, world');
-
-const testMessage = 'TypeScript works';
-
-console.log(testMessage);
+const objectFetcher = new ObjectFetcher({ label: 'book' });
 
 const app = new PIXI.Application({ transparent: true });
 app.renderer.view.style.position = 'absolute';
@@ -39,14 +27,6 @@ app.stage.addChild(container);
 type ImageObject = any;
 let objects: ImageObject[] = [];
 
-async function updateObjects() {
-  const newObjects = await (
-    await fetch('http://localhost:5000/objects/recent')
-  ).json();
-  console.log(newObjects);
-  objects = [...objects, ...newObjects];
-}
-
 const containerTickers: Map<PIXI.Container, (() => any)[]> = new Map();
 
 function containerWrappedTicker(container: PIXI.Container, cb: () => any) {
@@ -66,22 +46,21 @@ function destroyContainer(container: PIXI.Container) {
 }
 
 function makeRibbon(texture: PIXI.Texture) {
-  const startY =
-    Math.random() * (app.renderer.height + texture.height) - texture.height / 2;
-  const tileWidth =
-    Math.floor(app.renderer.width / texture.width) *
-    texture.width *
-    (4 + Math.random() * 10);
-  const tiledSprite = new PIXI.TilingSprite(texture, tileWidth, texture.height);
-  tiledSprite.y = startY;
-  tiledSprite.x = -tileWidth;
+  const startX =
+    Math.random() * (app.renderer.width + texture.width) - texture.width / 2;
+  const tileHeight =
+    Math.floor(app.renderer.height / texture.height) * texture.height * 4;
+  // (4 + Math.random() * 10);
+  const tiledSprite = new PIXI.TilingSprite(texture, texture.width, tileHeight);
+  tiledSprite.x = startX;
+  tiledSprite.y = -tileHeight;
   app.stage.addChild(tiledSprite);
 
   const duration = 7000 + 10000 * Math.random();
   const easeInstance = ease.add(
     tiledSprite,
     {
-      x: tileWidth,
+      y: tileHeight,
     },
     { reverse: false, duration, ease: 'easeInOutQuad' }
   );
@@ -123,12 +102,8 @@ const initialImageLoad = (loader: PIXI.Loader, resource: any) => {
   const container = makeRibbon(texture);
 };
 
-function displayOneObject() {
-  const nextObject = objects.pop();
-
-  const { filename } = nextObject;
-
-  const url = `http://localhost:5000/objects/${filename}`;
+async function displayOneObject() {
+  const url = await objectFetcher.getObject();
   console.log('loading: ', url);
 
   loader.add(url);
@@ -137,13 +112,13 @@ function displayOneObject() {
 
 loader.onLoad.add(initialImageLoad);
 
-updateObjects()
-  .then(displayOneObject)
-  .then(() => {
-    setInterval(() => {
-      displayOneObject();
-    }, 750);
-  });
+// displayOneObject();
+objectFetcher.addToQueue().then(() => {
+  displayOneObject();
+  setInterval(() => {
+    displayOneObject();
+  }, 750);
+});
 
 app.ticker.add(() => {
   app.renderer.render(container, renderTexture);
