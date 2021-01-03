@@ -1,0 +1,4 @@
+- make frontend work with basic library
+- get deploys set up to FB hosting
+- add collage.blackmadder.com
+-

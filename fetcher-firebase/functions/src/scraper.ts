@@ -84,16 +84,20 @@ export async function doScrape() {
     const id = media.id;
     //   console.log(media);
 
-    await firestore.collection('discover').doc(id).set(
-      {
-        id,
-        url,
-        taken_at,
-        added_at: admin.firestore.Timestamp.now(),
-        needsDownload: true,
-      },
-      { merge: true }
-    );
+    await firestore
+      .collection('discover')
+      .doc(id)
+      .set(
+        {
+          id,
+          url,
+          taken_at: new Date(taken_at * 1000),
+          added_at: admin.firestore.Timestamp.now(),
+          needsDownload: true,
+          needsSegmentation: true,
+        },
+        { merge: true }
+      );
   }
 
   const MAX_PAGES_PER_QUERY = 10;
