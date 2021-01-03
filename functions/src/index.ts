@@ -14,9 +14,9 @@ import { doScrape } from "./scraper";
 // });
 
 exports.scheduledFunction = functions.pubsub
-  .schedule("every 10 minutes")
+  .schedule("every 1 minutes")
   .onRun(async (context) => {
-    console.log("This will be run every 10 minute!");
+    console.log("This will be run every 1 minute!");
     await doScrape();
     return null;
   });

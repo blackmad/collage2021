@@ -3,19 +3,22 @@ import { ObjectFetcher } from './objectFetcher';
 
 export class OneAtATimeLoader {
   loader = new PIXI.Loader();
-  objectFetcher = new ObjectFetcher({ label: 'book' });
+  objectFetcher: ObjectFetcher;
   refreshRate: number;
   cb: (t: PIXI.Texture) => void;
 
   constructor({
     refreshRate,
     cb,
+    label,
   }: {
     refreshRate: number;
     cb: (t: PIXI.Texture) => void;
+    label?: string;
   }) {
     this.refreshRate = refreshRate;
     this.cb = cb;
+    this.objectFetcher = new ObjectFetcher({ label });
   }
 
   initialImageLoadHelper(loader: PIXI.Loader, url: string) {
