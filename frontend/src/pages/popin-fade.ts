@@ -17,7 +17,7 @@ function popIn(texture: PIXI.Texture) {
     {
       alpha: 1.0,
     },
-    { reverse: false, duration: 2, ease: 'easeInOutQuad' }
+    { reverse: false, duration: 2000 + _.random(10000), ease: 'easeInOutQuad' }
   );
 
   app.stage.addChild(s);
@@ -27,4 +27,4 @@ const app = makeApp();
 const container = new PIXI.Container();
 app.stage.addChild(container);
 
-new OneAtATimeLoader({ refreshRate: 1000, cb: popIn }).start();
+new OneAtATimeLoader({ refreshRate: 5000, cb: popIn }).start();
