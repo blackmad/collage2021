@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-interface ObjectFragment {
+export interface ObjectFragment {
   path: string;
   score: number;
   added_at: {
@@ -11,6 +11,7 @@ interface ObjectFragment {
   };
   label: string;
   url: string;
+  id: string;
 }
 
 const INIT_NEWEST = 0;
@@ -22,6 +23,7 @@ export class ObjectFetcher {
   objects: ObjectFragment[] = [];
   label: string;
   inFlightRequest: Promise<void> | undefined;
+  urlToObjectMap: Record<string, ObjectFragment> = {};
 
   constructor({ label }: { label?: string }) {
     this.label = label;
@@ -34,6 +36,10 @@ export class ObjectFetcher {
     return url;
   }
 
+  getObjectFromUrl(url: string): ObjectFragment {
+    return this.urlToObjectMap[url];
+  }
+
   async getObject(): Promise<ObjectFragment> {
     if (this.objects.length === 0) {
       await this.addToQueue();
@@ -42,7 +48,10 @@ export class ObjectFetcher {
       this.addToQueue();
     }
 
-    return this.objects.pop();
+    const object = this.objects.pop();
+    this.urlToObjectMap[ObjectFetcher.getImageUrl(object)] = object;
+
+    return object;
   }
 
   async addToQueue() {
@@ -63,7 +72,7 @@ export class ObjectFetcher {
       params.label = this.label?.toString();
     }
 
-    params.limit = '10';
+    params.limit = '1000';
 
     const fullUrl = baseUrl + '?' + new URLSearchParams(params).toString();
     console.log('fetching objects', params, fullUrl);
@@ -80,17 +89,8 @@ export class ObjectFetcher {
         this.newestSeen = INIT_NEWEST;
         this.oldestSeen = INIT_OLDEST;
       } else {
-        this.newestSeen = Math.max(
-          this.newestSeen,
-          _.max(this.objects.map((o) => o.taken_at._seconds))
-        );
-        console.log(_.max(this.objects.map((o) => o.taken_at._seconds)));
-        console.log(this.newestSeen);
-
-        this.oldestSeen = Math.min(
-          this.oldestSeen,
-          _.min(this.objects.map((o) => o.taken_at._seconds))
-        );
+        this.newestSeen = Math.max(this.newestSeen, json.newestSeen);
+        this.oldestSeen = Math.min(this.oldestSeen, json.oldestSeen);
       }
       resolve();
       this.inFlightRequest = undefined;

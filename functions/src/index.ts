@@ -1,4 +1,5 @@
 import * as admin from "firebase-admin";
+import * as _ from "lodash";
 admin.initializeApp();
 
 import * as functions from "firebase-functions";
@@ -52,6 +53,8 @@ const firestore = admin.firestore();
 exports.objects = functions.https.onRequest(
   wrapCors(async (req: express.Request, res: express.Response) => {
     const { label, newestSeen, oldestSeen, limit } = req.query;
+    const orderField = "added_at";
+    // const orderField = "taken_at";
 
     console.log(req.query);
 
@@ -66,11 +69,11 @@ exports.objects = functions.https.onRequest(
     if (newestSeen) {
       const newDate = new Date(parseInt(newestSeen as string) * 1000);
       console.log({ newDate });
-      query = query.where("taken_at", ">", newDate);
+      query = query.where(orderField, ">", newDate);
     }
 
     let snapshot = await query
-      .orderBy("taken_at", "desc")
+      .orderBy(orderField, "desc")
       .limit(parseInt((limit as string) || "100"))
       .get();
 
@@ -88,11 +91,11 @@ exports.objects = functions.https.onRequest(
         const oldDate = new Date(parseInt(oldestSeen as string) * 1000);
         console.log({ oldDate });
 
-        query = query.where("taken_at", "<", oldDate);
+        query = query.where(orderField, "<", oldDate);
       }
 
       snapshot = await query
-        .orderBy("taken_at", "desc")
+        .orderBy(orderField, "desc")
         .limit(parseInt((limit as string) || "100"))
         .get();
     }
@@ -100,6 +103,8 @@ exports.objects = functions.https.onRequest(
     const objects = snapshot.docs.map((d) => d.data());
     res.json({
       objects,
+      newestSeen: _.max(objects.map((o) => o[orderField]._seconds)),
+      oldestSeen: _.min(objects.map((o) => o[orderField]._seconds)),
     });
   })
 );

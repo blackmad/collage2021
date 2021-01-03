@@ -44,6 +44,7 @@
     "@types/pixi.js": "^5.0.0",
     "@typescript-eslint/eslint-plugin": "^4.11.1",
     "@typescript-eslint/parser": "^4.11.1",
+    "big-integer": "^1.6.48",
     "cors": "^2.8.5",
     "dat.gui": "^0.7.7",
     "debug": "^4.3.1",

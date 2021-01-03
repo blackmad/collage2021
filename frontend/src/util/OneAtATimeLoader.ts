@@ -1,23 +1,28 @@
 import * as PIXI from 'pixi.js';
 import { gui } from './gui';
-import { ObjectFetcher } from './objectFetcher';
+import { ObjectFetcher, ObjectFragment } from './objectFetcher';
+import { setTickerInterval } from './pixijs-utils';
 
 export class OneAtATimeLoader {
   loader = new PIXI.Loader();
   objectFetcher: ObjectFetcher;
   refreshRate: number;
-  cb: (t: PIXI.Texture) => void;
+  cb: (t: PIXI.Texture, object?: ObjectFragment) => void;
   debug: boolean = false;
+  app: PIXI.Application;
 
   constructor({
+    app,
     refreshRate,
     cb,
     label,
   }: {
+    app: PIXI.Application;
     refreshRate: number;
-    cb: (t: PIXI.Texture) => void;
+    cb: (t: PIXI.Texture, object?: ObjectFragment) => void;
     label?: string;
   }) {
+    this.app = app;
     this.refreshRate = refreshRate;
     this.cb = cb;
     this.objectFetcher = new ObjectFetcher({ label });
@@ -26,7 +31,7 @@ export class OneAtATimeLoader {
 
   initialImageLoadHelper(loader: PIXI.Loader, url: string) {
     const texture = loader.resources[url].texture;
-    this.cb(texture);
+    this.cb(texture, this.objectFetcher.getObjectFromUrl(url));
   }
 
   async displayOneObject() {
@@ -58,9 +63,13 @@ export class OneAtATimeLoader {
 
     this.objectFetcher.addToQueue().then(() => {
       this.displayOneObject();
-      setInterval(() => {
-        this.displayOneObject();
-      }, this.refreshRate);
+      setTickerInterval(
+        this.app,
+        () => {
+          this.displayOneObject();
+        },
+        this.refreshRate
+      );
     });
   }
 }

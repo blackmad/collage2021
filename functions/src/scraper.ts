@@ -4,35 +4,53 @@ import {
   IgApiClient,
   TopicalExploreFeedResponseCarouselMediaItem,
   TopicalExploreFeedResponseMedia,
-} from 'instagram-private-api';
-import * as _ from 'lodash';
+} from "instagram-private-api";
+import * as _ from "lodash";
 
-import * as functions from 'firebase-functions';
-import * as admin from 'firebase-admin';
-import 'firebase-functions';
+import * as functions from "firebase-functions";
+import * as admin from "firebase-admin";
+import "firebase-functions";
 // admin.initializeApp();
 
 const firestore = admin.firestore();
 firestore.settings({ ignoreUndefinedProperties: true });
 
+var bigInt = require("big-integer");
+
+function getShortcodeFromTag(tag: string) {
+  let id = bigInt(tag.split("_", 1)[0]);
+  const alphabet =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+  let remainder;
+  let shortcode = "";
+
+  while (id.greater(0)) {
+    let division = id.divmod(64);
+    id = division.quotient;
+    shortcode = `${alphabet.charAt(division.remainder)}${shortcode}`;
+  }
+
+  return shortcode;
+}
+
 async function fakeSave(data: any) {
   // console.log(data);(a)
   await firestore
-    .collection('login-creds')
-    .doc('creds')
+    .collection("login-creds")
+    .doc("creds")
     .set({ value: JSON.stringify(data) });
 }
 
 async function fakeExists(): Promise<boolean> {
-  const creds = await firestore.collection('login-creds').doc('creds').get();
-  console.log('creds', creds);
+  const creds = await firestore.collection("login-creds").doc("creds").get();
+  console.log("creds", creds);
   return creds.exists;
 }
 
 async function fakeLoad(): Promise<string | undefined> {
-  console.log('using cached');
+  console.log("using cached");
   return await (
-    await firestore.collection('login-creds').doc('creds').get()
+    await firestore.collection("login-creds").doc("creds").get()
   ).data()?.value;
 }
 
@@ -50,7 +68,7 @@ export async function doScrape() {
   }
 
   async function doLogin() {
-    console.log('username', functions.config().instagram.username);
+    console.log("username", functions.config().instagram.username);
     ig.state.generateDevice(functions.config().instagram.username);
     // This function executes after every request
     ig.request.end$.subscribe(async () => {
@@ -80,17 +98,22 @@ export async function doScrape() {
     }
     const candidates = media.image_versions2.candidates;
     const best = _.maxBy(candidates, (c) => c.width);
+    // we really want the 1080 images
+    if (best?.width || 0 < 400) {
+      return;
+    }
     const url = best?.url;
     const id = media.id;
     //   console.log(media);
 
     await firestore
-      .collection('discover')
+      .collection("discover")
       .doc(id)
       .set(
         {
           id,
           url,
+          originalUrl: "https://www.instagram.com/p/" + getShortcodeFromTag(id),
           taken_at: new Date(taken_at * 1000),
           added_at: admin.firestore.Timestamp.now(),
           needsDownload: true,

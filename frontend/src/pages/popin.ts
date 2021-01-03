@@ -17,4 +17,4 @@ const app = makeApp();
 const container = new PIXI.Container();
 app.stage.addChild(container);
 
-new OneAtATimeLoader({ refreshRate: 750, cb: popIn }).start();
+new OneAtATimeLoader({ app, refreshRate: 750, cb: popIn }).start();
