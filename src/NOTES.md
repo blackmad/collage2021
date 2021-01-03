@@ -1,4 +1,4 @@
-conda create -n collage python=3.8
+conda create -n collage python=3.7
 
 conda activate collage
 pip3 install -r requirements.txt

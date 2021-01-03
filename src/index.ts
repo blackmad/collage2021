@@ -10,6 +10,7 @@ import * as PIXI from 'pixi.js';
 import { files } from './files';
 // import { Kaleidoscope } from './Kaleidoscope';
 import * as _ from 'lodash';
+import { Ease, ease } from 'pixi-ease';
 
 console.log('hello, world');
 
@@ -65,20 +66,36 @@ function destroyContainer(container: PIXI.Container) {
 }
 
 function makeRibbon(texture: PIXI.Texture) {
-  const startY = Math.random() * app.renderer.height - texture.height;
-  const tiledSprite = new PIXI.TilingSprite(
-    texture,
-    app.renderer.width,
-    texture.height
-  );
+  const startY =
+    Math.random() * (app.renderer.height + texture.height) - texture.height / 2;
+  const tileWidth =
+    Math.floor(app.renderer.width / texture.width) *
+    texture.width *
+    (4 + Math.random() * 10);
+  const tiledSprite = new PIXI.TilingSprite(texture, tileWidth, texture.height);
   tiledSprite.y = startY;
+  tiledSprite.x = -tileWidth;
   app.stage.addChild(tiledSprite);
 
-  const baseMoveSpeed = 0.25 + 0.75 * Math.random();
-  containerWrappedTicker(tiledSprite, () => {
-    // sprite.alpha = Math.sin(count / alphaSpeed);
-    tiledSprite.tilePosition.x += baseMoveSpeed;
+  const duration = 7000 + 10000 * Math.random();
+  const easeInstance = ease.add(
+    tiledSprite,
+    {
+      x: tileWidth,
+    },
+    { reverse: false, duration, ease: 'easeInOutQuad' }
+  );
+
+  easeInstance.on('complete', () => {
+    tiledSprite.destroy();
   });
+
+  // const baseMoveSpeed =
+  //   0.25 + 0.75 * Math.random() * (Math.random() > 0.5 ? 1 : -1);
+  // containerWrappedTicker(tiledSprite, () => {
+  //   // sprite.alpha = Math.sin(count / alphaSpeed);
+  //   tiledSprite.tilePosition.x += baseMoveSpeed;
+  // });
 
   return tiledSprite;
 }
@@ -103,7 +120,7 @@ const initialImageLoad = (loader: PIXI.Loader, resource: any) => {
   console.log(resource.name);
   const url = resource.name;
   const texture = loader.resources[url].texture;
-  wrapInFade(makeRibbon(texture));
+  const container = makeRibbon(texture);
 };
 
 function displayOneObject() {
@@ -125,7 +142,7 @@ updateObjects()
   .then(() => {
     setInterval(() => {
       displayOneObject();
-    }, 1000);
+    }, 750);
   });
 
 app.ticker.add(() => {
