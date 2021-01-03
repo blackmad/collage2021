@@ -72,7 +72,7 @@ export class ObjectFetcher {
       params.label = this.label?.toString();
     }
 
-    params.limit = '1000';
+    params.limit = '200';
 
     const fullUrl = baseUrl + '?' + new URLSearchParams(params).toString();
     console.log('fetching objects', params, fullUrl);
