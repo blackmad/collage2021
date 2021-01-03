@@ -17,6 +17,7 @@
     "@types/cors": "^2.8.9",
     "@types/lodash": "^4.14.167",
     "@types/luxon": "^1.25.0",
+    "big-integer": "^1.6.48",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "firebase-admin": "^9.2.0",

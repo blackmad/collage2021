@@ -7,3 +7,4 @@ node_modules
 public
 .env
 firebase-debug.log
+*.cache

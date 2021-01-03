@@ -21,7 +21,6 @@ function getShortcodeFromTag(tag: string) {
   let id = bigInt(tag.split("_", 1)[0]);
   const alphabet =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
-  let remainder;
   let shortcode = "";
 
   while (id.greater(0)) {
