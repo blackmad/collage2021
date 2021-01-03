@@ -10,7 +10,7 @@ import * as _ from 'lodash';
 import * as functions from 'firebase-functions';
 import * as admin from 'firebase-admin';
 import 'firebase-functions';
-admin.initializeApp();
+// admin.initializeApp();
 
 const firestore = admin.firestore();
 firestore.settings({ ignoreUndefinedProperties: true });
@@ -62,9 +62,10 @@ export async function doScrape() {
       // import state accepts both a string as well as an object
       // the string should be a JSON object
       await ig.state.deserialize(await fakeLoad());
+    } else {
+      // Most of the time you don't have to login after loading the state
+      await forceLogin();
     }
-    // Most of the time you don't have to login after loading the state
-    await forceLogin();
   }
 
   async function logMedia(
@@ -85,6 +86,7 @@ export async function doScrape() {
 
     await firestore.collection('discover').doc(id).set(
       {
+        id,
         url,
         taken_at,
         added_at: admin.firestore.Timestamp.now(),
@@ -92,7 +94,6 @@ export async function doScrape() {
       },
       { merge: true }
     );
-    console.log('inserted ', id);
   }
 
   const MAX_PAGES_PER_QUERY = 10;
