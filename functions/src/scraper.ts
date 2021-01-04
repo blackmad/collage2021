@@ -117,6 +117,7 @@ export async function doScrape() {
           added_at: admin.firestore.Timestamp.now(),
           needsDownload: true,
           needsSegmentation: true,
+          source: "instagram",
         },
         { merge: true }
       );

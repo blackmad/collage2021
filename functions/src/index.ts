@@ -18,10 +18,10 @@ exports.scheduledFunction = functions.pubsub
   .schedule("every 10 minutes")
   .onRun(async (context) => {
     console.log("This will be run every 10 minute!");
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       setTimeout(async () => {
         await doScrape();
-        resolve(void);
+        resolve();
       }, _.random(2000, 15000));
     });
   });
