@@ -69,6 +69,11 @@ function mandala1(texture: PIXI.Texture) {
     PIXI.groupD8.MIRROR_VERTICAL
   );
 
+  const renderTexture = PIXI.RenderTexture.create({
+    width: app.renderer.width,
+    height: app.renderer.height,
+  });
+
   const duration = 2000 + _.random(10000);
   for (let r = 0; r < rows; ++r) {
     for (let c = 0; c < cols; ++c) {
@@ -91,60 +96,48 @@ function mandala1(texture: PIXI.Texture) {
 
       sprite.blendMode = PIXI.BLEND_MODES.COLOR_DODGE;
 
-      //   console.log({ c, r });
-
       if (c % 2 === 0) {
         sprite.x = c * cellWidth + x;
       } else {
         sprite.x = (c + 1) * cellWidth - x;
-        // sprite.x -= sprite.width / 2;
-        // sprite.scale.x = -1;
       }
-      //   console.log({ sx: sprite.x });
 
       if (r % 2 === 0) {
         sprite.y = r * cellHeight + y;
       } else {
         sprite.y = (r + 1) * cellHeight - y;
-        // sprite.y -= sprite.height / 2;
-        // sprite.scale.y = -1;
       }
 
-      sprite.alpha = 0;
+      // sprite.alpha = 0;
 
-      ease
-        .add(
-          sprite,
-          {
-            alpha: 1.0,
-          },
-          {
-            reverse: true,
-            duration: params.twinkleBug ? 2000 + _.random(10000) : duration,
-            ease: 'easeInQuad',
-          }
-        )
-        .once('complete', () => {
-          if (params.twinkleBug) {
-            setTimeout(() => {
-              sprite.destroy({ texture: true, baseTexture: true });
-              texture.destroy(true);
-              xFlipTexture.destroy(true);
-              yFlipTexture.destroy(true);
-              doubleFlipTexture.destroy(true);
-            }, 30000);
-          } else {
-            sprite.destroy({ texture: true, baseTexture: true });
-            texture.destroy(true);
-            xFlipTexture.destroy(true);
-            yFlipTexture.destroy(true);
-            doubleFlipTexture.destroy(true);
-          }
-        });
-
-      app.stage.addChild(sprite);
+      app.renderer.render(sprite, renderTexture, false);
+      sprite.destroy();
     }
   }
+
+  texture.destroy(true);
+  xFlipTexture.destroy(true);
+  yFlipTexture.destroy(true);
+  doubleFlipTexture.destroy(true);
+  const renderSprite = new PIXI.Sprite(renderTexture);
+  renderSprite.alpha = 0;
+  app.stage.addChild(renderSprite);
+
+  ease
+    .add(
+      renderSprite,
+      {
+        alpha: 1.0,
+      },
+      {
+        reverse: true,
+        duration: 5000 + _.random(20000),
+        ease: 'easeInQuad',
+      }
+    )
+    .once('complete', () => {
+      renderSprite.destroy({ texture: true, baseTexture: true });
+    });
 }
 
 const app = makeApp();
