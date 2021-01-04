@@ -46,7 +46,7 @@ export function makeApp() {
     false
   );
 
-  window.onresize = () => window.location.reload();
+  // window.onresize = () => window.location.reload();
 
   return app;
 }

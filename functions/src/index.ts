@@ -17,9 +17,13 @@ import { doScrape } from "./scraper";
 exports.scheduledFunction = functions.pubsub
   .schedule("every 10 minutes")
   .onRun(async (context) => {
-    console.log("This will be run every 1 minute!");
-    await doScrape();
-    return null;
+    console.log("This will be run every 10 minute!");
+    return new Promise((resolve, reject) => {
+      setTimeout(async () => {
+        await doScrape();
+        resolve(void);
+      }, _.random(2000, 15000));
+    });
   });
 
 // exports.myFunction = functions.firestore
