@@ -24,9 +24,12 @@ export class ObjectFetcher {
   label: string;
   inFlightRequest: Promise<void> | undefined;
   urlToObjectMap: Record<string, ObjectFragment> = {};
+  maxPerPhoto = 3;
 
   constructor({ label }: { label?: string }) {
-    this.label = label;
+    if (!_.isEmpty(label)) {
+      this.label = label;
+    }
   }
 
   static getImageUrl(object: ObjectFragment): string {
@@ -81,10 +84,32 @@ export class ObjectFetcher {
       const response = await fetch(fullUrl);
       const json = await response.json();
 
-      this.objects = [...this.objects, ...json.objects];
+      const newObjects = json.objects as ObjectFragment[];
+      const groups = _.groupBy(newObjects, (object) => object.id);
+      const lesserGroups = _.mapValues(groups, (group) =>
+        _.shuffle(group).slice(0, this.maxPerPhoto)
+      );
+      const newObjectsSubset = _.shuffle(_.flatten(_.values(lesserGroups)));
+
+      this.objects = [...this.objects, ...newObjectsSubset];
       console.log(this.objects);
 
-      if (this.objects.length === 0) {
+      console.log(
+        this.newestSeen,
+        json.newestSeen,
+        this.oldestSeen,
+        json.oldestSeen,
+        this.newestSeen === json.newestSeen,
+        this.oldestSeen === json.oldestSeen
+      );
+
+      if (
+        this.objects.length === 0 ||
+        (this.newestSeen === json.newestSeen &&
+          this.newestSeen === json.oldestSeen) ||
+        (this.oldestSeen === json.oldestSeen &&
+          this.newestSeen === json.oldestSeen)
+      ) {
         // empty response, let's loop back to start
         this.newestSeen = INIT_NEWEST;
         this.oldestSeen = INIT_OLDEST;

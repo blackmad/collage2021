@@ -15,7 +15,7 @@ import { doScrape } from "./scraper";
 // });
 
 exports.scheduledFunction = functions.pubsub
-  .schedule("every 1 minutes")
+  .schedule("every 10 minutes")
   .onRun(async (context) => {
     console.log("This will be run every 1 minute!");
     await doScrape();
@@ -53,8 +53,9 @@ const firestore = admin.firestore();
 exports.objects = functions.https.onRequest(
   wrapCors(async (req: express.Request, res: express.Response) => {
     const { label, newestSeen, oldestSeen, limit } = req.query;
-    const orderField = "added_at";
+    // const orderField = "added_at";
     // const orderField = "taken_at";
+    const orderField = "extracted_at";
 
     console.log(req.query);
 

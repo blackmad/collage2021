@@ -46,6 +46,8 @@ export function makeApp() {
     false
   );
 
+  window.onresize = () => window.location.reload();
+
   return app;
 }
 
@@ -78,7 +80,7 @@ export function makeSpriteInteractive(
 
   let text: PIXI.Text;
   s.addListener('mouseover', () => {
-    s.tint = 0xff0000;
+    // s.tint = 0xff0000;
 
     text = new PIXI.Text(`${object.label} (${object.score.toFixed(2)})`, {
       fontFamily: 'Arial',
