@@ -10,12 +10,13 @@ import * as _ from "lodash";
 import * as functions from "firebase-functions";
 import * as admin from "firebase-admin";
 import "firebase-functions";
+import Bluebird = require("bluebird");
 // admin.initializeApp();
 
 const firestore = admin.firestore();
 firestore.settings({ ignoreUndefinedProperties: true });
 
-var bigInt = require("big-integer");
+const bigInt = require("big-integer");
 
 function getShortcodeFromTag(tag: string) {
   let id = bigInt(tag.split("_", 1)[0]);
@@ -24,7 +25,7 @@ function getShortcodeFromTag(tag: string) {
   let shortcode = "";
 
   while (id.greater(0)) {
-    let division = id.divmod(64);
+    const division = id.divmod(64);
     id = division.quotient;
     shortcode = `${alphabet.charAt(division.remainder)}${shortcode}`;
   }
@@ -155,4 +156,135 @@ export async function doScrape() {
 
   await doLogin();
   await getDiscover();
+}
+
+const Flickr = require("flickr-sdk");
+
+const flickr = new Flickr(functions.config().flickr.api_key);
+
+function saveDocs(
+  entries: {
+    id: string;
+    source: string;
+    url: string;
+    originalUrl: string;
+    taken_at: Date;
+  }[]
+) {
+  function makeId(entry: { id: string; source: string }) {
+    return `${entry.id}-${entry.source}`;
+  }
+
+  return Bluebird.map(
+    entries,
+    async (entry) => {
+      const id = makeId(entry);
+      const doc = await firestore.collection("discover").doc(id).get();
+      if (doc.exists) {
+        return;
+      }
+
+      console.log(`writing ${id}`);
+
+      return firestore.collection("discover").doc(id).set(entry);
+    },
+    { concurrency: 5 }
+  );
+}
+
+export function doFlickrScrape() {
+  if (!flickr) {
+    return;
+  }
+
+  return flickr.photos
+    .getRecent({
+      page: 1,
+      per_page: 500,
+      extras: "url_o,date_taken,date_upload",
+    })
+    .then((res: any) => {
+      console.log(res);
+      const { body } = res;
+      const { photos } = body;
+
+      console.log(photos);
+      const entries = photos.photo.map((photo: any) => {
+        const { id, url_o, datetaken, dateupload } = photo;
+        console.log({ id, url_o, datetaken, dateupload });
+
+        return {
+          id,
+          url: url_o,
+          originalUrl: `http://flickr.com/photo.gne?id=${id}`,
+          taken_at: new Date(parseInt(dateupload) * 1000),
+          source: "flickr",
+        };
+      });
+      return saveDocs(entries);
+    });
+}
+
+import * as tumblr from "tumblr.js";
+const client = tumblr.createClient({
+  consumer_key: functions.config().tumblr.api_key,
+  consumer_secret: functions.config().tumblr.api_key,
+});
+
+import cheerio = require("cheerio");
+const TAGS = [
+  "photography",
+  "food",
+  "streetphotography",
+  "fashion",
+  "cars",
+  "dogs",
+  "cats",
+  "pets",
+];
+
+import * as util from "util";
+
+export async function doScrapeTumblr() {
+  const entries: any[] = [];
+
+  async function getPage(tag: string, page: number) {
+    const resp = (await taggedPosts("photography", { page })) as any[];
+
+    resp.forEach((post: any) => {
+      console.log(post);
+      // console.log(post.body)
+      if (!post.body) {
+        return;
+      }
+      const { id, timestamp, post_url } = post;
+      const $ = cheerio.load(post.body);
+      $("img").map((index, img) => {
+        const src = $(img).attr("src");
+        entries.push({
+          id,
+          url: src,
+          originalUrl: post_url,
+          taken_at: new Date(timestamp * 1000),
+          source: "flickr",
+        });
+      });
+    });
+  }
+
+  const taggedPosts = util.promisify(
+    (tag: string, options: any, cb: Function) =>
+      client.taggedPosts(tag, options, (err, ...results) => cb(err, results))
+  );
+
+  await Bluebird.map(
+    TAGS,
+    async (tag) => {
+      await getPage(tag, 1);
+      await getPage(tag, 2);
+    },
+    { concurrency: 1 }
+  );
+
+  await saveDocs(entries);
 }
