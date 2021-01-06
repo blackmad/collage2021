@@ -82,4 +82,4 @@ const app = makeApp();
 const container = new PIXI.Container();
 app.stage.addChild(container);
 
-new OneAtATimeLoader({ app, refreshRate: 750, cb: makeRibbon }).start();
+new OneAtATimeLoader({ app, initialRefreshRate: 750, cb: makeRibbon }).start();

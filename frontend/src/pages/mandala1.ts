@@ -7,10 +7,12 @@ import { OneAtATimeLoader } from '../util/OneAtATimeLoader';
 import { gui } from '../util/gui';
 
 const params = {
-  twinkleBug: false,
+  minDuration: 5000,
+  maxDuration: 20000,
 };
 
-gui.add(params, 'twinkleBug');
+gui.add(params, 'minDuration');
+gui.add(params, 'maxDuration');
 
 function mandala1(texture: PIXI.Texture) {
   const s = new PIXI.Sprite(texture);
@@ -36,14 +38,9 @@ function mandala1(texture: PIXI.Texture) {
   const cellWidth = app.renderer.width / cols;
   const cellHeight = app.renderer.height / rows;
 
-  //   console.log(cols, rows, cellWidth, cellHeight);
-
   const x = cols === 1 ? app.renderer.width / 2 : _.random(0, cellWidth, true);
   const y =
     rows === 1 ? app.renderer.height / 2 : _.random(0, cellHeight, true);
-
-  //   console.log(rows, cols);
-  //   console.log({ x });
 
   const xFlipTexture = new PIXI.Texture(
     texture.baseTexture,
@@ -74,7 +71,8 @@ function mandala1(texture: PIXI.Texture) {
     height: app.renderer.height,
   });
 
-  const duration = 2000 + _.random(10000);
+  const duration =
+    params.minDuration + _.random(params.maxDuration - params.minDuration);
   for (let r = 0; r < rows; ++r) {
     for (let c = 0; c < cols; ++c) {
       let tmpTexture: PIXI.Texture = texture;
@@ -131,7 +129,7 @@ function mandala1(texture: PIXI.Texture) {
       },
       {
         reverse: true,
-        duration: 5000 + _.random(20000),
+        duration,
         ease: 'easeInQuad',
       }
     )
@@ -146,6 +144,6 @@ app.stage.addChild(container);
 
 new OneAtATimeLoader({
   app,
-  refreshRate: 1500,
+  initialRefreshRate: 1500,
   cb: mandala1,
 }).start();

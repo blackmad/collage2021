@@ -68,6 +68,25 @@ export function setTickerInterval(
   });
 }
 
+export function setTickerTimeout(
+  app: PIXI.Application,
+  ms: number,
+  cb: CallableFunction
+) {
+  let elapsedTime = 0;
+
+  const updateFn = (deltaTime: number) => {
+    // console.log(deltaTimeMs);
+    elapsedTime += deltaTime * (1000 / 60);
+    if (elapsedTime > ms) {
+      cb();
+      app.ticker.remove(updateFn);
+    }
+  };
+
+  app.ticker.add(updateFn);
+}
+
 export function makeSpriteInteractive(
   app: PIXI.Application,
   s: PIXI.Sprite,

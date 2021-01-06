@@ -1,7 +1,6 @@
 import '../styles/style.scss';
 import * as PIXI from 'pixi.js';
 import * as _ from 'lodash';
-import { ease } from 'pixi-ease';
 import { makeApp } from '../util/pixijs-utils';
 import { OneAtATimeLoader } from '../util/OneAtATimeLoader';
 
@@ -17,4 +16,4 @@ const app = makeApp();
 const container = new PIXI.Container();
 app.stage.addChild(container);
 
-new OneAtATimeLoader({ app, refreshRate: 750, cb: popIn }).start();
+new OneAtATimeLoader({ app, initialRefreshRate: 750, cb: popIn }).start();

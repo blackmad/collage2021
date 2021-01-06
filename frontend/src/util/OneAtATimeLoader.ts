@@ -2,7 +2,7 @@ import * as PIXI from 'pixi.js';
 import { CocoCategories } from './coco-utils';
 import { gui } from './gui';
 import { ObjectFetcher, ObjectFragment } from './objectFetcher';
-import { setTickerInterval } from './pixijs-utils';
+import { setTickerTimeout } from './pixijs-utils';
 
 export class OneAtATimeLoader {
   loader = new PIXI.Loader();
@@ -15,15 +15,18 @@ export class OneAtATimeLoader {
 
   constructor({
     app,
-    refreshRate,
+    initialRefreshRate,
     cb,
   }: {
     app: PIXI.Application;
-    refreshRate: number;
+    initialRefreshRate: number;
     cb: (t: PIXI.Texture, object?: ObjectFragment) => void;
   }) {
     this.app = app;
-    this.refreshRate = refreshRate;
+    this.refreshRate = initialRefreshRate;
+
+    gui.add(this, 'refreshRate');
+
     this.cb = cb;
 
     this.label = new URLSearchParams(window.location.search).get('label') || '';
@@ -72,13 +75,15 @@ export class OneAtATimeLoader {
 
     this.objectFetcher.addToQueue().then(() => {
       this.displayOneObject();
-      setTickerInterval(
-        this.app,
-        () => {
+
+      const doRefresh = () => {
+        setTickerTimeout(this.app, this.refreshRate, () => {
           this.displayOneObject();
-        },
-        this.refreshRate
-      );
+          doRefresh();
+        });
+      };
+
+      doRefresh();
     });
   }
 }

@@ -56,6 +56,7 @@
     "normalize.css": "^8.0.1",
     "pixi-action": "^1.0.2",
     "pixi-ease": "^3.0.7",
+    "pixi-timeout": "^1.0.4",
     "pixi.js": "^5.3.7",
     "prettier": "^2.2.1",
     "sqlite": "^4.0.19",
