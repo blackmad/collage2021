@@ -63,13 +63,13 @@ export function makeApp() {
   const text = new PIXI.Text('Be patient.', {
     fontFamily: 'Garamond',
     fontSize: 48,
-    fill: 0xd1d1d1,
+    fill: 0,
     align: 'center',
   });
   app.stage.addChild(text);
   text.anchor.set(0.5);
   text.position.x = app.renderer.width / 2;
-  text.position.y = app.renderer.height / 2;
+  text.position.y = (app.renderer.height * 1) / 3;
 
   ease
     .add(
@@ -80,7 +80,7 @@ export function makeApp() {
       {
         reverse: true,
         duration: 4000,
-        ease: 'easeInBack',
+        ease: 'easeInSine',
       }
     )
     .once('complete', () => {
@@ -90,7 +90,7 @@ export function makeApp() {
   const text2 = new PIXI.Text('Space bar to pause, d to hide GUI.', {
     fontFamily: 'Garamond',
     fontSize: 24,
-    fill: 0xd1d1d1,
+    fill: 0,
     align: 'center',
   });
 
@@ -108,7 +108,7 @@ export function makeApp() {
       {
         reverse: true,
         duration: 4000,
-        ease: 'easeInBack',
+        ease: 'easeInSine',
       }
     )
     .once('complete', () => {
