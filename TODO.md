@@ -1,4 +1,3 @@
-- make frontend work with basic library
-- get deploys set up to FB hosting
-- add collage.blackmadder.com
--
+- add more instructions
+- save dat.gui params to url
+- build mini-kaleidoscopes out of objects

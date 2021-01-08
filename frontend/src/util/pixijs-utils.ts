@@ -2,6 +2,7 @@ import * as PIXI from 'pixi.js';
 
 import { Ease } from 'pixi-ease';
 import { ObjectFragment } from './objectFetcher';
+import { gui } from './gui';
 
 var bigInt = require('big-integer');
 
@@ -31,6 +32,8 @@ export function makeApp() {
   document.body.appendChild(app.view);
 
   let tickerRunning = true;
+  let guiShown = true;
+
   window.addEventListener(
     'keydown',
     (event: KeyboardEvent) => {
@@ -42,9 +45,75 @@ export function makeApp() {
         }
         tickerRunning = !tickerRunning;
       }
+
+      if (event.key === 'd') {
+        if (guiShown) {
+          gui.hide();
+        } else {
+          gui.show();
+          app.ticker.start();
+        }
+        guiShown = !guiShown;
+      }
     },
     false
   );
+
+  const textContainer = new PIXI.Container();
+  const text = new PIXI.Text('Be patient.', {
+    fontFamily: 'Garamond',
+    fontSize: 48,
+    fill: 0xd1d1d1,
+    align: 'center',
+  });
+  app.stage.addChild(text);
+  text.anchor.set(0.5);
+  text.position.x = app.renderer.width / 2;
+  text.position.y = app.renderer.height / 2;
+
+  ease
+    .add(
+      text,
+      {
+        alpha: 0.0,
+      },
+      {
+        reverse: true,
+        duration: 4000,
+        ease: 'easeInBack',
+      }
+    )
+    .once('complete', () => {
+      text.destroy();
+    });
+
+  const text2 = new PIXI.Text('Space bar to pause, d to hide GUI.', {
+    fontFamily: 'Garamond',
+    fontSize: 24,
+    fill: 0xd1d1d1,
+    align: 'center',
+  });
+
+  app.stage.addChild(text2);
+  text2.anchor.set(0.5);
+  text2.position.x = app.renderer.width / 2;
+  text2.position.y = (app.renderer.height * 2) / 3;
+
+  ease
+    .add(
+      text2,
+      {
+        alpha: 0.0,
+      },
+      {
+        reverse: true,
+        duration: 4000,
+        ease: 'easeInBack',
+      }
+    )
+    .once('complete', () => {
+      text2.destroy();
+    });
 
   // window.onresize = () => window.location.reload();
 

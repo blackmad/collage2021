@@ -62,20 +62,35 @@ const firestore = admin.firestore();
 
 exports.objects = functions.https.onRequest(
   wrapCors(async (req: express.Request, res: express.Response) => {
-    const { label, newestSeen, oldestSeen, limit } = req.query;
+    const { label, newestSeen, oldestSeen, limit, exclude, random } = req.query;
+
+    function makeBaseQuery() {
+      let baseQuery: admin.firestore.Query<admin.firestore.DocumentData> = firestore.collection(
+        "objects"
+      );
+
+      if (label) {
+        baseQuery = baseQuery.where("label", "==", label);
+      }
+
+      if (exclude === "person") {
+        baseQuery = baseQuery.where("notAPerson", "==", true);
+      }
+
+      if (random) {
+        baseQuery = baseQuery.where("random", "==", random);
+      }
+
+      console.log({ exclude, baseQuery });
+
+      return baseQuery;
+    }
+
     // const orderField = "added_at";
     // const orderField = "taken_at";
     const orderField = "extracted_at";
 
-    console.log(req.query);
-
-    let query: admin.firestore.Query<admin.firestore.DocumentData> = firestore.collection(
-      "objects"
-    );
-
-    if (label) {
-      query = query.where("label", "==", label);
-    }
+    let query = makeBaseQuery();
 
     if (newestSeen) {
       const newDate = new Date(parseInt(newestSeen as string) * 1000);
@@ -92,11 +107,7 @@ exports.objects = functions.https.onRequest(
 
     if (snapshot.docs.length === 0 && oldestSeen) {
       console.log("rerunning from the bottom, ", oldestSeen);
-      query = firestore.collection("objects");
-
-      if (label) {
-        query = query.where("label", "==", label);
-      }
+      query = makeBaseQuery();
 
       if (oldestSeen) {
         const oldDate = new Date(parseInt(oldestSeen as string) * 1000);

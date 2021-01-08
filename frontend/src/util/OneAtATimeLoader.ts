@@ -12,6 +12,7 @@ export class OneAtATimeLoader {
   debug: boolean = false;
   app: PIXI.Application;
   label: string = '';
+  excludePeople: boolean = true;
 
   constructor({
     app,
@@ -30,14 +31,29 @@ export class OneAtATimeLoader {
     this.cb = cb;
 
     this.label = new URLSearchParams(window.location.search).get('label') || '';
-    this.objectFetcher = new ObjectFetcher({ label: this.label });
+
+    const createObjectFetcher = () => {
+      this.objectFetcher = new ObjectFetcher({
+        label: this.label,
+        exclude: this.excludePeople ? 'person' : undefined,
+      });
+    };
+
+    createObjectFetcher();
 
     gui.add(this, 'debug');
+
+    gui.add(this, 'excludePeople').onChange((value) => {
+      this.excludePeople = value;
+      createObjectFetcher();
+    });
+
     gui
       .add(this, 'label')
       .options(['', ...CocoCategories])
       .onChange((newLabel) => {
-        this.objectFetcher = new ObjectFetcher({ label: newLabel });
+        this.label = newLabel;
+        createObjectFetcher();
       });
   }
 
@@ -56,7 +72,7 @@ export class OneAtATimeLoader {
       document.body.appendChild(el);
     }
 
-    console.log('loading: ', url);
+    console.log(`loading: ${url} - ${object.label}`);
 
     if (this.loader.resources[url]) {
       this.initialImageLoadHelper(this.loader, url);

@@ -9,14 +9,16 @@ import { gui } from '../util/gui';
 const params = {
   minDuration: 5000,
   maxDuration: 20000,
+  maxPercentageOfCell: 20,
+  minPercentageOfCell: 200,
 };
 
 gui.add(params, 'minDuration');
 gui.add(params, 'maxDuration');
+gui.add(params, 'maxPercentageOfCell');
+gui.add(params, 'minPercentageOfCell');
 
 function mandala1(texture: PIXI.Texture) {
-  const s = new PIXI.Sprite(texture);
-  //
   let cols = _.random(0, 5) * 2;
   let rows = _.random(0, 5) * 2;
 
@@ -34,6 +36,11 @@ function mandala1(texture: PIXI.Texture) {
       rows = 2;
     }
   }
+
+  const possibleChangePercentage = _.random(
+    params.minPercentageOfCell / 100,
+    params.maxPercentageOfCell / 100
+  );
 
   const cellWidth = app.renderer.width / cols;
   const cellHeight = app.renderer.height / rows;
@@ -92,6 +99,14 @@ function mandala1(texture: PIXI.Texture) {
       const sprite = new PIXI.Sprite(tmpTexture);
       sprite.anchor.set(0.5);
 
+      // let's maybe scale the size of this
+      const newWidth = possibleChangePercentage * cellWidth;
+      const newHeight = sprite.height * (newWidth / sprite.width);
+      if (newWidth < sprite.width && newHeight < sprite.height) {
+        sprite.width = newWidth;
+        sprite.height = newHeight;
+      }
+
       sprite.blendMode = PIXI.BLEND_MODES.COLOR_DODGE;
 
       if (c % 2 === 0) {
@@ -126,6 +141,7 @@ function mandala1(texture: PIXI.Texture) {
       renderSprite,
       {
         alpha: 1.0,
+        // shake: 20,
       },
       {
         reverse: true,

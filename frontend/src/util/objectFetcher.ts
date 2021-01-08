@@ -25,10 +25,15 @@ export class ObjectFetcher {
   inFlightRequest: Promise<void> | undefined;
   urlToObjectMap: Record<string, ObjectFragment> = {};
   maxPerPhoto = 3;
+  exclude: string;
 
-  constructor({ label }: { label?: string }) {
+  constructor({ label, exclude }: { label?: string; exclude?: string }) {
     if (!_.isEmpty(label)) {
       this.label = label;
+    }
+
+    if (!_.isEmpty(exclude)) {
+      this.exclude = exclude;
     }
   }
 
@@ -73,6 +78,9 @@ export class ObjectFetcher {
     }
     if (this.label) {
       params.label = this.label?.toString();
+    }
+    if (this.exclude) {
+      params.exclude = this.exclude?.toString();
     }
 
     params.limit = '200';
