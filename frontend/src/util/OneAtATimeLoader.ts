@@ -8,7 +8,7 @@ export class OneAtATimeLoader {
   loader = new PIXI.Loader();
   objectFetcher: ObjectFetcher;
   refreshRate: number;
-  cb: (t: PIXI.Texture, object?: ObjectFragment) => void;
+  cb: (t: PIXI.Texture, object: ObjectFragment, , done: () => void) => void;
   debug: boolean = false;
   app: PIXI.Application;
   label: string = '';
@@ -21,7 +21,7 @@ export class OneAtATimeLoader {
   }: {
     app: PIXI.Application;
     initialRefreshRate: number;
-    cb: (t: PIXI.Texture, object?: ObjectFragment) => void;
+    cb: (t: PIXI.Texture, object: ObjectFragment, done: () => void) => void;
   }) {
     this.app = app;
     this.refreshRate = initialRefreshRate;
@@ -59,7 +59,18 @@ export class OneAtATimeLoader {
 
   initialImageLoadHelper(loader: PIXI.Loader, url: string) {
     const texture = loader.resources[url].texture;
-    this.cb(texture, this.objectFetcher.getObjectFromUrl(url));
+    if (!texture || !texture.baseTexture || !texture.frame) {
+      console.error(
+        'failed to load texture for ',
+        url,
+        !texture.baseTexture,
+        !texture.frame
+      );
+      return;
+    }
+    this.cb(texture, this.objectFetcher.getObjectFromUrl(url), () => {
+      loader.destroy();
+    });
   }
 
   async displayOneObject() {
@@ -74,21 +85,23 @@ export class OneAtATimeLoader {
 
     console.log(`loading: ${url} - ${object.label}`);
 
-    if (this.loader.resources[url]) {
-      this.initialImageLoadHelper(this.loader, url);
-    } else {
-      this.loader.add(url);
-      this.loader.load();
-    }
-  }
+    const loader = new PIXI.Loader();
 
-  start() {
+    loader.add(url);
+    loader.load();
+
     const initialImageLoad = (loader: PIXI.Loader, resource: any) => {
       this.initialImageLoadHelper(loader, resource.name);
     };
 
-    this.loader.onLoad.add(initialImageLoad);
+    loader.onLoad.add(initialImageLoad);
+    loader.onError.add((e) => {
+      console.log('loader error');
+      console.log(e);
+    }); // called once per errored file
+  }
 
+  start() {
     this.objectFetcher.addToQueue().then(() => {
       this.displayOneObject();
 

@@ -4,7 +4,10 @@ import * as _ from 'lodash';
 import { ease } from 'pixi-ease';
 import { makeApp } from '../util/pixijs-utils';
 import { OneAtATimeLoader } from '../util/OneAtATimeLoader';
-import { addGUIParam, gui } from '../util/gui';
+import { gui } from '../util/gui';
+import { ObjectFragment } from '../util/objectFetcher';
+
+document.title = 'Internet Unconscious Mandala by @blackmad';
 
 const params = {
   minDuration: 5000,
@@ -18,7 +21,11 @@ gui.add(params, 'maxDuration');
 gui.add(params, 'maxPercentageOfCell');
 gui.add(params, 'minPercentageOfCell');
 
-function mandala1(texture: PIXI.Texture) {
+function mandala1(
+  texture: PIXI.Texture,
+  object: ObjectFragment,
+  done: () => void
+) {
   let cols = _.random(0, 5) * 2;
   let rows = _.random(0, 5) * 2;
 
@@ -151,6 +158,7 @@ function mandala1(texture: PIXI.Texture) {
     )
     .once('complete', () => {
       renderSprite.destroy({ texture: true, baseTexture: true });
+      done();
     });
 }
 

@@ -93,7 +93,7 @@ exports.objects = functions.https.onRequest(
     let query = makeBaseQuery();
 
     if (newestSeen) {
-      const newDate = new Date(parseInt(newestSeen as string) * 1000);
+      const newDate = new Date((parseInt(newestSeen as string) + 1) * 1000);
       console.log({ newDate });
       query = query.where(orderField, ">", newDate);
     }
@@ -110,7 +110,7 @@ exports.objects = functions.https.onRequest(
       query = makeBaseQuery();
 
       if (oldestSeen) {
-        const oldDate = new Date(parseInt(oldestSeen as string) * 1000);
+        const oldDate = new Date((parseInt(oldestSeen as string) - 1) * 1000);
         console.log({ oldDate });
 
         query = query.where(orderField, "<", oldDate);
