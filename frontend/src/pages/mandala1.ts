@@ -4,7 +4,7 @@ import * as _ from 'lodash';
 import { ease } from 'pixi-ease';
 import { makeApp } from '../util/pixijs-utils';
 import { OneAtATimeLoader } from '../util/OneAtATimeLoader';
-import { gui } from '../util/gui';
+import { addGUIParam, gui } from '../util/gui';
 
 const params = {
   minDuration: 5000,

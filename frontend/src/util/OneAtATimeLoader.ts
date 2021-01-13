@@ -30,7 +30,10 @@ export class OneAtATimeLoader {
 
     this.cb = cb;
 
-    this.label = new URLSearchParams(window.location.search).get('label') || '';
+    this.label =
+      new URLSearchParams(
+        window.location.hash.substring(1) || window.location.search.substring(1)
+      ).get('label') || '';
 
     const createObjectFetcher = () => {
       this.objectFetcher = new ObjectFetcher({
@@ -48,13 +51,10 @@ export class OneAtATimeLoader {
       createObjectFetcher();
     });
 
-    gui
-      .add(this, 'label')
-      .options(['', ...CocoCategories])
-      .onChange((newLabel) => {
-        this.label = newLabel;
-        createObjectFetcher();
-      });
+    gui.add(this, 'label', ['', ...CocoCategories]).onChange((newLabel) => {
+      this.label = newLabel;
+      createObjectFetcher();
+    });
   }
 
   initialImageLoadHelper(loader: PIXI.Loader, url: string) {

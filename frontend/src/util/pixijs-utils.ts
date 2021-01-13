@@ -32,7 +32,8 @@ export function makeApp() {
   document.body.appendChild(app.view);
 
   let tickerRunning = true;
-  let guiShown = true;
+  let guiShown = false;
+  gui.hide();
 
   window.addEventListener(
     'keydown',
@@ -59,7 +60,6 @@ export function makeApp() {
     false
   );
 
-  const textContainer = new PIXI.Container();
   const text = new PIXI.Text('Be patient.', {
     fontFamily: 'Garamond',
     fontSize: 48,
@@ -78,7 +78,6 @@ export function makeApp() {
         alpha: 0.0,
       },
       {
-        reverse: true,
         duration: 4000,
         ease: 'easeInSine',
       }
@@ -87,7 +86,7 @@ export function makeApp() {
       text.destroy();
     });
 
-  const text2 = new PIXI.Text('Space bar to pause, d to hide GUI.', {
+  const text2 = new PIXI.Text('Space bar to pause, d to trigger options.', {
     fontFamily: 'Garamond',
     fontSize: 24,
     fill: 0,
@@ -106,7 +105,6 @@ export function makeApp() {
         alpha: 0.0,
       },
       {
-        reverse: true,
         duration: 4000,
         ease: 'easeInSine',
       }
