@@ -4,11 +4,17 @@ import { gui } from './gui';
 import { ObjectFetcher, ObjectFragment } from './objectFetcher';
 import { setTickerTimeout } from './pixijs-utils';
 
+export type FetchedObjectWithDoneCallback = {
+  texture: PIXI.Texture;
+  object: ObjectFragment;
+  done: () => void;
+};
+
 export class OneAtATimeLoader {
   loader = new PIXI.Loader();
   objectFetcher: ObjectFetcher;
   refreshRate: number;
-  cb: (t: PIXI.Texture, object: ObjectFragment, , done: () => void) => void;
+  cb: (params: FetchedObjectWithDoneCallback) => void;
   debug: boolean = false;
   app: PIXI.Application;
   label: string = '';
@@ -18,10 +24,14 @@ export class OneAtATimeLoader {
     app,
     initialRefreshRate,
     cb,
+    initialCb,
+    initialBatchSize,
   }: {
     app: PIXI.Application;
     initialRefreshRate: number;
-    cb: (t: PIXI.Texture, object: ObjectFragment, done: () => void) => void;
+    cb: (params: FetchedObjectWithDoneCallback) => void;
+    initialCb?: FetchedObjectWithDoneCallback[];
+    initialBatchSize?: number;
   }) {
     this.app = app;
     this.refreshRate = initialRefreshRate;
@@ -68,8 +78,12 @@ export class OneAtATimeLoader {
       );
       return;
     }
-    this.cb(texture, this.objectFetcher.getObjectFromUrl(url), () => {
-      loader.destroy();
+    this.cb({
+      texture,
+      object: this.objectFetcher.getObjectFromUrl(url),
+      done: () => {
+        loader.destroy();
+      },
     });
   }
 

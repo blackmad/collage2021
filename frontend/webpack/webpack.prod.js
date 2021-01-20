@@ -20,6 +20,8 @@ fs.readdirSync('src/pages').forEach((filename) => {
       new HtmlWebpackPlugin({
         inject: true,
         hash: true,
+        title: `@blackmad's internet unconscious : ${name}`,
+        favicon: '../static/favicon.png',
         // hash: false,
         // template: './' + src_Path + '/index.html',
         chunks: [name],

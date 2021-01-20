@@ -186,7 +186,15 @@ function saveDocs(
 
       console.log(`writing ${id}`);
 
-      return firestore.collection("discover").doc(id).set(entry);
+      return firestore
+        .collection("discover")
+        .doc(id)
+        .set({
+          ...entry,
+          added_at: admin.firestore.Timestamp.now(),
+          needsDownload: true,
+          needsSegmentation: true,
+        });
     },
     { concurrency: 5 }
   );
@@ -198,7 +206,7 @@ export function doFlickrScrape() {
   }
 
   return flickr.photos
-    .getRecent({
+    .getPopular({
       page: 1,
       per_page: 500,
       extras: "url_o,date_taken,date_upload",

@@ -5,12 +5,13 @@ const typeDetectConvert = require('string-to-type');
 
 type ChangeFunction = (value?: any) => void;
 
-const params: Record<string, any> = {};
-
 const originalGUIAdd = _.bind(gui.add, gui);
 gui.add = addGUIParam;
 
 const initialParams = new URLSearchParams(window.location.hash.substring(1));
+const params: Record<string, any> = {
+  ...Object.fromEntries(initialParams as any),
+};
 
 export function addGUIParam(
   target: Object,

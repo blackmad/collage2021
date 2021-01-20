@@ -86,7 +86,7 @@ export function makeApp() {
       text.destroy();
     });
 
-  const text2 = new PIXI.Text('Space bar to pause, d to trigger options.', {
+  const text2 = new PIXI.Text('Space bar to pause, d to show options.', {
     fontFamily: 'Garamond',
     fontSize: 24,
     fill: 0,
@@ -105,12 +105,39 @@ export function makeApp() {
         alpha: 0.0,
       },
       {
-        duration: 4000,
+        duration: 6000,
         ease: 'easeInSine',
       }
     )
     .once('complete', () => {
       text2.destroy();
+    });
+
+  const text3 = new PIXI.Text("Inspired by Brian Eno's 77 Million Paintings.", {
+    fontFamily: 'Garamond',
+    fontSize: 24,
+    fill: 0,
+    align: 'center',
+  });
+
+  app.stage.addChild(text3);
+  text3.anchor.set(0.5);
+  text3.position.x = app.renderer.width / 2;
+  text3.position.y = (app.renderer.height * 2) / 5;
+
+  ease
+    .add(
+      text3,
+      {
+        alpha: 0.0,
+      },
+      {
+        duration: 2000,
+        ease: 'easeInSine',
+      }
+    )
+    .once('complete', () => {
+      text3.destroy();
     });
 
   // window.onresize = () => window.location.reload();

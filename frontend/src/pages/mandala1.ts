@@ -3,17 +3,18 @@ import * as PIXI from 'pixi.js';
 import * as _ from 'lodash';
 import { ease } from 'pixi-ease';
 import { makeApp } from '../util/pixijs-utils';
-import { OneAtATimeLoader } from '../util/OneAtATimeLoader';
+import {
+  FetchedObjectWithDoneCallback,
+  OneAtATimeLoader,
+} from '../util/OneAtATimeLoader';
 import { gui } from '../util/gui';
 import { ObjectFragment } from '../util/objectFetcher';
-
-document.title = 'Internet Unconscious Mandala by @blackmad';
 
 const params = {
   minDuration: 5000,
   maxDuration: 20000,
-  maxPercentageOfCell: 20,
-  minPercentageOfCell: 200,
+  maxPercentageOfCell: 200,
+  minPercentageOfCell: 20,
 };
 
 gui.add(params, 'minDuration');
@@ -21,11 +22,7 @@ gui.add(params, 'maxDuration');
 gui.add(params, 'maxPercentageOfCell');
 gui.add(params, 'minPercentageOfCell');
 
-function mandala1(
-  texture: PIXI.Texture,
-  object: ObjectFragment,
-  done: () => void
-) {
+function mandala1({ texture, object, done }: FetchedObjectWithDoneCallback) {
   let cols = _.random(0, 5) * 2;
   let rows = _.random(0, 5) * 2;
 
